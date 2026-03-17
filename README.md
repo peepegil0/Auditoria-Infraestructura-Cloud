@@ -4,13 +4,11 @@
 
 En este proyecto realizo una auditoría sobre un archivo XML que contiene información de infraestructura cloud. Para ello utilizo **XPath**, con el objetivo de extraer datos concretos de forma eficiente sin afectar al rendimiento del sistema.
 
-El trabajo está basado en un caso práctico donde se simula un entorno profesional de auditoría de sistemas.
-
 ## Contenido del repositorio
 
 * **CatalogoCloud.xml** → Archivo con los datos de la infraestructura
 * **CatalogoCloud.xsd** → Esquema de validación del XML
-* **auditoria_apellidos_nombre.xbook** → Archivo con las consultas XPath realizadas
+* **auditoria_GilCué_Pepe.xbook** → Archivo con las consultas XPath realizadas
 * **README.md** → Explicación del proyecto
 
 ## Herramientas utilizadas
@@ -27,6 +25,7 @@ El **objetivo** de esta práctica es aprender a:
 * Utilizar expresiones XPath
 * Filtrar información mediante condiciones
 * Obtener datos específicos de forma eficiente
+* Repaso de expresiones regulares 
 
 ## Misiones realizadas
 
