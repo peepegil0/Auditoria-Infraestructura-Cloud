@@ -6,8 +6,6 @@ En este proyecto realizo una auditoría sobre un archivo XML que contiene inform
 
 El trabajo está basado en un caso práctico donde se simula un entorno profesional de auditoría de sistemas.
 
----
-
 ## Contenido del repositorio
 
 * **CatalogoCloud.xml** → Archivo con los datos de la infraestructura
@@ -15,26 +13,20 @@ El trabajo está basado en un caso práctico donde se simula un entorno profesio
 * **auditoria_apellidos_nombre.xbook** → Archivo con las consultas XPath realizadas
 * **README.md** → Explicación del proyecto
 
----
-
 ## Herramientas utilizadas
 
 * Visual Studio Code
 * Extensión **XPath Notebook**
 * Lenguaje **XPath**
 
----
-
 ## Objetivo
 
-El objetivo de esta práctica es aprender a:
+El **objetivo** de esta práctica es aprender a:
 
 * Navegar por documentos XML
 * Utilizar expresiones XPath
 * Filtrar información mediante condiciones
 * Obtener datos específicos de forma eficiente
-
----
 
 ## Misiones realizadas
 
@@ -58,15 +50,5 @@ He identificado el primer servidor apagado dentro del sistema usando funciones d
 
 He extraído la arquitectura de CPU de los servidores que tienen GPU mediante navegación inversa.
 
----
 
-## Conclusión
-
-Con esta práctica he aprendido a utilizar XPath para consultar datos dentro de archivos XML de forma precisa y eficiente, algo fundamental en entornos reales de administración de sistemas y auditoría.
-
----
-
-## Autor
-
-Pepe Gil Cué
 
