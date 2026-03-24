@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="CatalogoCloud_v2.xsd" type="application/xml" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<!-- 
+  ========================================================
+  Módulo: LMSGI - CFGS DAM/DAW
+  Autor: Willman Acosta Lugo
+  Descripción: XML refactorizado y válido contra CatalogoCloud_v2.xsd
+  ========================================================
+-->
+<catalogo_cloud empresa="TechNova Cloud">
+
+    <!-- ============================================ -->
+    <!-- Data Center: Región Sur (Madrid)             -->
+    <!-- ============================================ -->
+    <centro_datos ubicacion="Madrid" zona="eu-sur-1">
+
+        <!-- Servidor web principal — IP fija, estado activo -->
+        <servidor id="srv-web-01" rack="A1" estado="activo">
+            <hardware>
+                <cpu nucleos="16" arquitectura="x86_64">Intel Xeon Gold</cpu>
+                <ram unidad="GB">64</ram>
+                <!-- Sin GPU: el elemento es opcional en el XSD (minOccurs="0") -->
+                <discos>
+                    <disco tipo="NVMe" capacidad_tb="2" principal="true" />
+                    <disco tipo="SSD"  capacidad_tb="4" principal="false" />
+                </discos>
+            </hardware>
+            <software>
+                <so version="22.04">Ubuntu Server</so>
+                <servicios>
+                    <servicio puerto="80">Nginx HTTP</servicio>
+                    <servicio puerto="443">Nginx HTTPS</servicio>
+                </servicios>
+            </software>
+            <!-- Misión 4: este servidor usa IP fija -->
+            <red>
+                <ip_fija>10.0.0.01</ip_fija>
+            </red>
+            <!-- Misión 5: auditoría en cualquier orden gracias a xs:all -->
+            <auditoria>
+                <fecha_revision>2025-03-15</fecha_revision>
+                <tecnico>Pedro López</tecnico>
+                <nota>Sin errores</nota>
+            </auditoria>
+        </servidor>
+        <servidor id="srv-db-01" rack="A2" estado="mantenimiento">
+            <hardware>
+                <cpu nucleos="64" arquitectura="ARM">Ampere Altra</cpu>
+                <ram unidad="GB">128</ram>
+                <discos>
+                    <disco tipo="NVMe" capacidad_tb="8" principal="true" />
+                </discos>
+            </hardware>
+            <software>
+                <so version="15">Debian GNU/Linux</so>
+                <servicios>
+                    <servicio puerto="5432">PostgreSQL</servicio>
+                </servicios>
+            </software>
+            <!-- Misión 4: IP fija para el servidor de base de datos -->
+            <red>
+                <ip_fija>10.0.0.02</ip_fija>
+            </red>
+
+            <!-- Misión 5: primero la nota, luego los demás campos -->
+        
+            <auditoria>
+                <nota>Pendiente de actualizar PostgreSQL a v16.</nota>
+                <tecnico>Carlos Ruiz</tecnico>
+                <fecha_revision>2025-04-02</fecha_revision>
+            </auditoria>
+        </servidor>
+
+    </centro_datos>
+  
+    <centro_datos ubicacion="Paris" zona="eu-centro-1">
+
+        <servidor id="srv-ia-01" rack="B1" estado="activo">
+            <hardware>
+                <cpu nucleos="32" arquitectura="x86_64">AMD EPYC</cpu>
+                <ram unidad="GB">128</ram>
+                <!-- GPU declarada ANTES de <discos>, como exige el xs:sequence del XSD -->
+                <gpu modelo="NVIDIA A100" vram_gb="80">Tensor Core</gpu>
+                <discos>
+                    <disco tipo="NVMe" capacidad_tb="4" principal="true" />
+                </discos>
+            </hardware>
+            <software>
+                <so version="22.04">Ubuntu Server</so>
+                <servicios>
+                    <servicio puerto="8888">Jupyter Hub</servicio>
+                </servicios>
+            </software>
+
+            <!-- Misión 4: este servidor obtiene su IP por DHCP -->
+            
+            <red>
+                <dhcp>si</dhcp>
+            </red>
+
+            <!-- Misión 5: auditoría con orden diferente para demostrar xs:all -->
+            
+            <auditoria>
+                <tecnico>Ana Gómez</tecnico>
+                <nota>Servidor de entrenamiento. GPU al 100% de uso.</nota>
+                <fecha_revision>2025-05-10</fecha_revision>
+            </auditoria>
+        </servidor>
+
+        <!-- Servidor de backup — apagado, sin GPU, usa DHCP -->
+        
+        <servidor id="srv-backup-01" rack="B2" estado="apagado">
+            <hardware>
+                <cpu nucleos="8" arquitectura="x86_64">Intel Xeon Bronze</cpu>
+                <ram unidad="GB">32</ram>
+                <!-- Sin GPU -->
+                <discos>
+                    <disco tipo="HDD" capacidad_tb="50" principal="true" />
+                </discos>
+            </hardware>
+            <software>
+                <so version="9">CentOS Stream</so>
+                <servicios>
+                    <servicio puerto="22">OpenSSH</servicio>
+                    <servicio puerto="873">Rsync</servicio>
+                </servicios>
+            </software>
+
+            <!-- Misión 4: servidor de backup con DHCP desactivado -->
+            
+            <red>
+                <dhcp>no</dhcp>
+            </red>
+
+            <!-- Misión 5: auditoría -->
+            
+            <auditoria>
+                <fecha_revision>2025-01-20</fecha_revision>
+                <nota>Servidor apagado tras migración a almacenamiento en nube.</nota>
+                <tecnico>Pedro Sánchez</tecnico>
+            </auditoria>
+        </servidor>
+
+    </centro_datos>
+
+</catalogo_cloud>
