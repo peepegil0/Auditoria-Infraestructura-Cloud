@@ -2,53 +2,164 @@
 
 ## Descripción del proyecto
 
-Este proyecto consiste en la creación de un archivo XML que contiene el catálogo de servidores de la empresa ficticia TechNova Cloud, organizado por centros de datos, y un archivo XSD que se encarga de validar que todos los datos tengan el formato y la estructura correctos.
+Este proyecto consiste en la refactorización del esquema XSD del catálogo de servidores de TechNova Cloud y su archivo XML asociado. Partiendo de una versión inicial con validaciones RegEx básicas, el objetivo ha sido evolucionar el esquema aplicando los indicadores avanzados de XSD: agrupaciones reutilizables, control de cardinalidad, elementos excluyentes, orden flexible y garantía de unicidad.
 
-El objetivo es modelar un escenario real de infraestructura cloud aplicando restricciones avanzadas de XSD: expresiones regulares para validar formatos, agrupaciones reutilizables, control de cardinalidad, elementos excluyentes y unicidad de identificadores.
+El resultado es un esquema más limpio, más fácil de mantener y más robusto frente a errores de introducción de datos.
 
 ## Estructura del repositorio
 
 El repositorio contiene los siguientes archivos:
 
-* **CatalogoCloud_v2.xml** → Archivo XML con el catálogo de servidores de TechNova Cloud.
+* **CatalogoCloud_v2.xml** → Archivo XML con el catálogo de servidores refactorizado.
 * **CatalogoCloud_v2.xsd** → Esquema XSD que define la estructura y las reglas de validación.
 * **README.md** → Documento explicativo del proyecto.
+  
+## Misiones aplicadas
 
-## Validaciones realizadas
+### Misión 1 — attributeGroup (AtributosServidor)
 
-### Expresiones regulares (pattern)
+Los tres atributos del elemento `<servidor>` (`id`, `rack` y `estado`) se han extraído a un `<xs:attributeGroup name="AtributosServidor">` en la raíz del XSD. Desde el elemento `<servidor>` se llama con una sola línea mediante `ref="AtributosServidor"`. Esto evita repetir la declaración de los tres atributos cada vez que se reutilice el elemento.
 
-En el archivo XSD se utilizan **expresiones regulares** para validar el formato de varios campos:
+### Misión 2 — group, sequence
 
-* **ID del servidor**: se valida con `srv-[a-z]+-[0-9]{2}`, obligando a que comience por `srv-`, seguido de letras minúsculas, un guion y exactamente dos dígitos. Ejemplos válidos: `srv-web-01`, `srv-backup-03`.
-* **Zona geográfica**: se valida con `[a-z]{2}-[a-z]+-\d+`, siguiendo el estándar de regiones cloud. Ejemplos válidos: `eu-sur-1`, `us-east-2`.
-* **Rack**: se valida con `[A-Z]\d{1,2}`, exigiendo una letra mayúscula seguida de uno o dos dígitos. Ejemplos válidos: `A1`, `B12`.
-* **Versión del sistema operativo**: se valida con `\d+(\.\d+)*`, permitiendo versiones simples o con puntos. Ejemplos válidos: `22.04`, `9`, `15`.
-* **Estado del servidor**: se valida con el patrón `activo|mantenimiento|apagado`, limitando los valores únicamente a esas tres opciones.
-* **Unidad de RAM**: se valida con `MB|GB|TB`, permitiendo solo esas tres unidades de medida como atributo.
-* **Tipo de disco**: se valida con `NVMe|SSD|HDD`, asegurando que solo se usen tipos de almacenamiento reconocidos.
-* **DHCP**: se valida con `si|no`, limitando el valor del elemento a esas dos opciones.
+Los elementos `cpu`, `ram`, `gpu` y `discos` se han agrupado en `<xs:group name="ComponentesHardware">`. El indicador `<xs:sequence>` obliga a que aparezcan siempre en ese orden exacto. El elemento `<hardware>` ya no los declara directamente, sino que los referencia con `<xs:group ref="ComponentesHardware" />`.
 
-### Agrupaciones y estructura avanzada
+### Misión 3 — minOccurs y maxOccurs
 
-Además de las expresiones regulares, el XSD aplica varias técnicas de estructuración:
+La `<gpu>` tiene `minOccurs="0"` para hacerla opcional, ya que no todos los servidores disponen de tarjeta gráfica. Los `<disco>` tienen `maxOccurs="8"`, limitando el número máximo de discos por servidor a ocho.
 
-* **`attributeGroup` (AtributosServidor)**: los atributos `id`, `rack` y `estado` del elemento `<servidor>` se han extraído a un grupo reutilizable, evitando repetición de código en el esquema.
-* **`group` (ComponentesHardware)**: los elementos `cpu`, `ram`, `gpu` y `discos` se han agrupado en un bloque reutilizable con `xs:sequence`, garantizando que siempre aparezcan en ese orden exacto.
-* **`minOccurs` y `maxOccurs`**: la `<gpu>` tiene `minOccurs="0"` para hacerla opcional, ya que no todos los servidores disponen de tarjeta gráfica. Los `<disco>` tienen un máximo de 8 por servidor (`maxOccurs="8"`).
-* **`choice` (elemento `<red>`)**: cada servidor debe tener O BIEN una `<ip_fija>` O BIEN un `<dhcp>`. El validador rechaza cualquier XML que intente incluir los dos a la vez.
-* **`all` (elemento `<auditoria>`)**: los tres campos de auditoría (`fecha_revision`, `tecnico` y `nota`) pueden aparecer en cualquier orden dentro del XML, pero los tres son obligatorios.
-* **`unique` (UnicoID)**: garantiza que ningún atributo `@id` se repita en todo el documento, añadiendo una segunda capa de protección más allá del formato.
+### Misión 4 — choice (elemento `<red>`)
+
+Justo después de `<software>`, cada servidor incluye un elemento `<red>`. Mediante `<xs:choice>`, el validador obliga a que contenga O BIEN una `<ip_fija>` O BIEN un `<dhcp>` (con valor `si` o `no`). Si alguien intenta incluir los dos a la vez, el validador da error.
+
+### Misión 5 — all (elemento `<auditoria>`)
+
+Al final de cada `<servidor>` se ha añadido un elemento `<auditoria>` con tres campos: `fecha_revision`, `tecnico` y `nota`. El indicador `<xs:all>` permite que esos tres campos aparezcan en cualquier orden dentro del XML. Los tres siguen siendo obligatorios.
+
+### Misión 6 — unique (UnicoID)
+
+Se ha añadido la restricción `<xs:unique name="UnicoID">` al final del elemento raíz `<catalogo_cloud>`. Esta restricción recorre todos los elementos `<servidor>` del documento y garantiza que ningún atributo `@id` se repita, aunque su formato sea válido según la RegEx.
+
+### ¿Cuántas líneas de código habéis ahorrado al usar grupos?
+
+El grupo `ComponentesHardware` ocupa **72 líneas** en su definición. Sin este grupo, esas 72 líneas tendrían que estar declaradas directamente dentro del elemento `<hardware>`. Al usar el grupo, se reduce a **1 sola línea** (`<xs:group ref="ComponentesHardware" />`), lo que supone un **ahorro de 71 líneas** en el código.
+
+De forma similar, el `attributeGroup` `AtributosServidor` agrupa **3 atributos** en un bloque de **5 líneas** y los sustituye por una única línea de referencia dentro del `<servidor>`. Si el esquema tuviera varios elementos que compartiesen esos atributos, el ahorro se multiplicaría por cada uso adicional.
+
+En total, el uso de grupos en este proyecto ha permitido ahorrar aproximadamente **72 líneas** de código repetido, haciendo el esquema más limpio y fácil de mantener.
+
+### ¿Qué error da VS Code si intentáis poner dos servidores con el mismo ID?
+
+Al intentar validar un XML que contiene dos servidores con el mismo `id` (por ejemplo, dos veces `srv-web-01`), da error.
+
+Esto ocurre porque la restricción `<xs:unique name="UnicoID">` sirve como un portero que recorre todos los atributos `@id` del documento tras aplicar la validación de formato. Aunque la RegEx acepte el valor `srv-web-01` como correcto en ambos casos, el `unique` detecta que el mismo valor aparece dos veces y lanza el error de duplicado. El formato puede ser válido y aun así fallar la validación de unicidad: son dos capas de control independientes.
 
 ## Tecnologías utilizadas
 
 * **XML** para almacenar y estructurar los datos del catálogo de servidores.
+* **XSD**  para validar la estructura, los tipos y las reglas.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Catálogo Cloud con XML y XSD — TechNova Cloud v2.0
+
+## Descripción del proyecto
+
+Este proyecto consiste en la refactorización del esquema XSD del catálogo de servidores de TechNova Cloud y su archivo XML asociado. Partiendo de una versión inicial con validaciones RegEx básicas, el objetivo ha sido evolucionar el esquema aplicando los indicadores avanzados de XSD: agrupaciones reutilizables, control de cardinalidad, elementos excluyentes, orden flexible y garantía de unicidad.
+
+El resultado es un esquema más limpio, más fácil de mantener y más robusto frente a errores de introducción de datos.
+
+## Estructura del repositorio
+
+El repositorio contiene los siguientes archivos:
+
+* **CatalogoCloud_v2.xml** → Archivo XML refactorizado con los nuevos elementos `<red>` y `<auditoria>` en cada servidor.
+* **CatalogoCloud_v2.xsd** → Esquema XSD refactorizado con las 6 misiones aplicadas.
+* **README.md** → Documento explicativo del proyecto.
+
+## Misiones aplicadas
+
+### Misión 1 — attributeGroup (AtributosServidor)
+
+Los tres atributos del elemento `<servidor>` (`id`, `rack` y `estado`) se han extraído a un `<xs:attributeGroup name="AtributosServidor">` en la raíz del XSD. Desde el elemento `<servidor>` se llama con una sola línea mediante `ref="AtributosServidor"`. Esto evita repetir la declaración de los tres atributos cada vez que se reutilice el elemento.
+
+### Misión 2 — group + sequence (ComponentesHardware)
+
+Los elementos `cpu`, `ram`, `gpu` y `discos` se han agrupado en `<xs:group name="ComponentesHardware">`. El indicador `<xs:sequence>` obliga a que aparezcan siempre en ese orden exacto. El elemento `<hardware>` ya no los declara directamente, sino que los referencia con `<xs:group ref="ComponentesHardware" />`.
+
+### Misión 3 — minOccurs y maxOccurs
+
+La `<gpu>` tiene `minOccurs="0"` para hacerla opcional, ya que no todos los servidores disponen de tarjeta gráfica. Los `<disco>` dentro de `<discos>` tienen `maxOccurs="8"`, limitando el número máximo de discos por servidor a ocho.
+
+### Misión 4 — choice (elemento `<red>`)
+
+Justo después de `<software>`, cada servidor incluye un elemento `<red>`. Mediante `<xs:choice>`, el validador obliga a que contenga O BIEN una `<ip_fija>` O BIEN un `<dhcp>` (con valor `si` o `no`). Si alguien intenta incluir los dos a la vez, el validador lanza un error.
+
+### Misión 5 — all (elemento `<auditoria>`)
+
+Al final de cada `<servidor>` se ha añadido un elemento `<auditoria>` con tres campos: `fecha_revision`, `tecnico` y `nota`. El indicador `<xs:all>` permite que esos tres campos aparezcan en cualquier orden dentro del XML, sin que el validador se queje. Los tres siguen siendo obligatorios.
+
+### Misión 6 — unique (UnicoID)
+
+Se ha añadido la restricción `<xs:unique name="UnicoID">` al final del elemento raíz `<catalogo_cloud>`. Esta restricción recorre todos los elementos `<servidor>` del documento y garantiza que ningún atributo `@id` se repita, aunque su formato sea válido según la RegEx.
+
+---
+
+## Preguntas del entregable
+
+### ¿Cuántas líneas de código habéis ahorrado al usar grupos?
+
+El grupo `ComponentesHardware` ocupa **72 líneas** en su definición (líneas 61–132 del XSD). Sin este grupo, esas 72 líneas tendrían que estar declaradas directamente dentro del elemento `<hardware>`. Al usar el grupo, la llamada se reduce a **1 sola línea** (`<xs:group ref="ComponentesHardware" />`), lo que supone un **ahorro de 71 líneas** en el cuerpo del esquema.
+
+De forma similar, el `attributeGroup` `AtributosServidor` agrupa **3 atributos** en un bloque de **5 líneas** y los sustituye por una única línea de referencia dentro del `<servidor>`. Si el esquema tuviera varios elementos que compartiesen esos atributos, el ahorro se multiplicaría por cada uso adicional.
+
+En total, el uso de grupos en este proyecto ha permitido ahorrar aproximadamente **72 líneas** de código repetido, haciendo el esquema más limpio y fácil de mantener.
+
+### ¿Qué error da VS Code si intentáis poner dos servidores con el mismo ID?
+
+Al intentar validar un XML que contiene dos servidores con el mismo `id` (por ejemplo, dos veces `srv-web-01`), VS Code muestra el siguiente error:
+
+```
+Duplicate unique value [srv-web-01] declared for identity constraint "UnicoID" of element "catalogo_cloud".
+```
+
+Esto ocurre porque la restricción `<xs:unique name="UnicoID">` actúa como un guardián que recorre todos los atributos `@id` del documento tras aplicar la validación de formato. Aunque la RegEx acepte el valor `srv-web-01` como correcto en ambos casos, el `unique` detecta que el mismo valor aparece dos veces y lanza el error de duplicado. El formato puede ser válido y aun así fallar la validación de unicidad: son dos capas de control independientes.
+
+---
+
+## Tecnologías utilizadas
+
+* **XML** para estructurar y almacenar el catálogo de servidores.
 * **XSD** (XML Schema Definition) para definir la estructura, los tipos y las reglas de validación.
+* **VS Code** con la extensión XML de Red Hat para validar el XML contra el esquema en tiempo real.
 * **Expresiones regulares**, comprobadas a través de https://regex101.com/
 
 ## Bibliografía
 
 * https://www.w3schools.com/xml/schema_intro.asp
 * https://www.w3schools.com/xml/schema_complex_indicators.asp
-* https://regex101.com/
 * https://www.w3.org/TR/xmlschema-0/
+* https://regex101.com/
+
