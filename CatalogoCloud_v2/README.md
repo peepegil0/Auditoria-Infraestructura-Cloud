@@ -42,17 +42,17 @@ Se ha añadido la restricción `<xs:unique name="UnicoID">` al final del element
 
 ### ¿Cuántas líneas de código habéis ahorrado al usar grupos?
 
-El grupo `ComponentesHardware` ocupa **72 líneas** en su definición. Sin este grupo, esas 72 líneas tendrían que estar declaradas directamente dentro del elemento `<hardware>`. Al usar el grupo, se reduce a **1 sola línea** (`<xs:group ref="ComponentesHardware" />`), lo que supone un **ahorro de 71 líneas** en el código.
+El grupo `ComponentesHardware` ocupa **una gran cantidad de líneas**. Sin este grupo, esas líneas tendrían que estar declaradas directamente dentro del elemento `<hardware>`. Al usar el grupo, se reduce a **1 sola línea** (`<xs:group ref="ComponentesHardware" />`), lo que supone un gran ahorro en el código.
 
 De forma similar, el `attributeGroup` `AtributosServidor` agrupa **3 atributos** en un bloque de **5 líneas** y los sustituye por una única línea de referencia dentro del `<servidor>`. Si el esquema tuviera varios elementos que compartiesen esos atributos, el ahorro se multiplicaría por cada uso adicional.
 
-En total, el uso de grupos en este proyecto ha permitido ahorrar aproximadamente **72 líneas** de código repetido, haciendo el esquema más limpio y fácil de mantener.
+En total, el uso de grupos en este proyecto ha permitido ahorrar aproximadamente **más de 50 lineas** de código repetido, haciendo el esquema más limpio y fácil de mantener.
 
 ### ¿Qué error da VS Code si intentáis poner dos servidores con el mismo ID?
 
 Al intentar validar un XML que contiene dos servidores con el mismo `id` (por ejemplo, dos veces `srv-web-01`), da error.
 
-Esto ocurre porque la restricción `<xs:unique name="UnicoID">` sirve como un portero que recorre todos los atributos `@id` del documento tras aplicar la validación de formato. Aunque la RegEx acepte el valor `srv-web-01` como correcto en ambos casos, el `unique` detecta que el mismo valor aparece dos veces y lanza el error de duplicado. El formato puede ser válido y aun así fallar la validación de unicidad: son dos capas de control independientes.
+Esto ocurre porque la restricción `<xs:unique name="UnicoID">` sirve como un portero que recorre todos los atributos `@id` del documento tras aplicar la validación. El formato puede ser válido y aun así fallar la validación debido a que son distintas.
 
 ## Tecnologías utilizadas
 
