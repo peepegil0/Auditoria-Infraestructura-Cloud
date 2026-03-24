@@ -2,7 +2,7 @@
 
 ## Descripción del proyecto
 
-Este proyecto consiste en la refactorización del esquema XSD del catálogo de servidores de TechNova Cloud y su archivo XML asociado. Partiendo de una versión inicial con validaciones RegEx básicas, el objetivo ha sido evolucionar el esquema aplicando los indicadores avanzados de XSD: agrupaciones reutilizables, control de cardinalidad, elementos excluyentes, orden flexible y garantía de unicidad.
+Este proyecto consiste en la refactorización del esquema XSD del catálogo de servidores de TechNova Cloud y su archivo XML asociado. Partiendo de una versión inicial con validaciones RegEx básicas, el objetivo ha sido evolucionar el esquema aplicando los indicadores avanzados de XSD.
 
 El resultado es un esquema más limpio, más fácil de mantener y más robusto frente a errores de introducción de datos.
 
